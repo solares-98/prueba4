@@ -10,7 +10,7 @@ body {
     background-color: #f5f3ef; /* Color de fondo */
 }
 .header {
-    background-image: url('../images/A&R.jpeg'); /* Cambia esta URL a la imagen de fondo deseada */
+    background-image: url('/images/A&R.jpeg'); /* Cambia esta URL a la imagen de fondo deseada */
     height: 100vh;
     background-position: center;
     background-repeat: no-repeat;
@@ -55,7 +55,7 @@ h1 {
 }
 main {
     padding: 20px;
-    background-image: url('../images/img4.jpg');
+    background-image: url('/images/img4.jpg');
 }
 
 .frase{
