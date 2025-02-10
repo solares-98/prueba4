@@ -1,55 +1,45 @@
-const mongoose = require("mongoose");
-const Invitado = require("../modeloUser"); // Verifica la ruta y que el modelo esté bien definido
 const nodemailer = require("nodemailer");
 
-// Conexión a MongoDB usando la variable de entorno
-mongoose.connect(process.env.MONGODB_URI, { 
-  useNewUrlParser: true, 
-  useUnifiedTopology: true 
-})
-.then(() => console.log("Conexión exitosa a la base de datos"))
-.catch((error) => console.error("Error al conectar a la base de datos:", error));
-
 module.exports = async (req, res) => {
+  // Solo se permiten solicitudes POST
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Método no permitido" });
   }
-  
+
   try {
-    // Para depurar, muestra el cuerpo recibido
+    // Extraer los datos enviados en el formulario
+    const { name, phone, email, children } = req.body;
     console.log("Datos recibidos:", req.body);
 
-    const nuevoInvitado = new Invitado({
-      name: req.body.name,
-      phone: req.body.phone,
-      email: req.body.email,
-      children: req.body.children
-    });
-    
-    await nuevoInvitado.save();
-
-    // Puedes comentar temporalmente el envío de correo para aislar el error
-    /*
+    // Configurar el transportador de correo usando las variables de entorno
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
+        user: process.env.EMAIL_USER, // Debe estar configurado en Vercel
+        pass: process.env.EMAIL_PASS  // Contraseña de aplicación generada para Gmail
       }
     });
-    
+
+    // Construir el contenido HTML del correo
+    const htmlContent = `
+      <h1>Confirmación de Asistencia</h1>
+      <p><strong>Nombre:</strong> ${name}</p>
+      <p><strong>Teléfono:</strong> ${phone}</p>
+      <p><strong>Email:</strong> ${email}</p>
+      <p><strong>Número de niños:</strong> ${children}</p>
+    `;
+
+    // Enviar el correo
     await transporter.sendMail({
       from: '"Boda de Alejandra y Roberto" <tu_correo@gmail.com>',
-      to: nuevoInvitado.email,
-      subject: "Invitación a la Boda",
-      html: `<p>Hola ${nuevoInvitado.name}, te invitamos a nuestra boda.</p>`
+      to: email, // Se envía a la dirección que ingresó el usuario; puedes cambiarlo a otro destinatario si lo prefieres
+      subject: "Confirmación de Asistencia - Boda de Alejandra y Roberto",
+      html: htmlContent
     });
-    */
-    
-    return res.status(200).json({ message: "Registro exitoso", invitado: nuevoInvitado });
-    
+
+    return res.status(200).json({ message: "Correo enviado correctamente." });
   } catch (error) {
-    console.error("Error en el backend:", error);
-    return res.status(500).json({ error: "Error en el servidor" });
+    console.error("Error al enviar el correo:", error);
+    return res.status(500).json({ error: "Error al enviar el correo." });
   }
 };
