@@ -1,6 +1,5 @@
-// api/index.js
 const mongoose = require("mongoose");
-const Invitado = require("../modeloUser"); // Asegúrate de que el path es correcto
+const Invitado = require("../modeloUser"); // Verifica la ruta y que el modelo esté bien definido
 const nodemailer = require("nodemailer");
 
 // Conexión a MongoDB usando la variable de entorno
@@ -17,6 +16,9 @@ module.exports = async (req, res) => {
   }
   
   try {
+    // Para depurar, muestra el cuerpo recibido
+    console.log("Datos recibidos:", req.body);
+
     const nuevoInvitado = new Invitado({
       name: req.body.name,
       phone: req.body.phone,
@@ -25,8 +27,9 @@ module.exports = async (req, res) => {
     });
     
     await nuevoInvitado.save();
-    
-    // Configurar y enviar correo (opcional)
+
+    // Puedes comentar temporalmente el envío de correo para aislar el error
+    /*
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -41,6 +44,7 @@ module.exports = async (req, res) => {
       subject: "Invitación a la Boda",
       html: `<p>Hola ${nuevoInvitado.name}, te invitamos a nuestra boda.</p>`
     });
+    */
     
     return res.status(200).json({ message: "Registro exitoso", invitado: nuevoInvitado });
     
