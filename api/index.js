@@ -7,20 +7,28 @@ module.exports = async (req, res) => {
   }
 
   try {
-    // Extraer los datos enviados en el formulario
+    // Extraer datos del formulario
     const { name, phone, email, children } = req.body;
     console.log("Datos recibidos:", req.body);
 
-    // Configurar el transportador de correo usando las variables de entorno
+    // Configurar el transportador para enviar el correo
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: process.env.EMAIL_USER, // Debe estar configurado en Vercel
-        pass: process.env.EMAIL_PASS  // Contraseña de aplicación generada para Gmail
+        user: process.env.EMAIL_USER,    // Configurado en Vercel (ej: personalsolares@gmail.com)
+        pass: process.env.EMAIL_PASS     // Contraseña de aplicación de Gmail
       }
     });
 
-    // Construir el contenido HTML del correo
+    // Construir el contenido del correo (mismo texto que usaremos para WhatsApp)
+    const messageContent = `
+      Confirmación de Asistencia:
+      Nombre: ${name}
+      Teléfono: ${phone}
+      Email: ${email}
+      Número de niños: ${children}
+    `;
+
     const htmlContent = `
       <div style="font-family: 'Josefin Slab', serif; text-align: center; background-color: #f8f9fa; padding: 20px;">
           <div style="background-color: #ffffff; padding: 20px; border-radius: 10px; max-width: 600px; margin: auto; border: 1px solid #dddddd;">
@@ -38,17 +46,28 @@ module.exports = async (req, res) => {
       </div>
     `;
 
-    // Enviar el correo
+    // Enviar el correo al destinatario (puedes modificar "to" según necesites)
     await transporter.sendMail({
       from: '"Boda de Alejandra y Roberto" <tu_correo@gmail.com>',
-      to: email, // Se envía a la dirección que ingresó el usuario; puedes cambiarlo a otro destinatario si lo prefieres
+      to: email, // Se envía al correo ingresado, o puedes enviarlo a otro destinatario
       subject: "Confirmación de Asistencia - Boda de Alejandra y Roberto",
       html: htmlContent
     });
 
-    return res.status(200).send(`Formulario enviado correctamente. <a href="${whatsappLink}" target="_blank">Haz clic aquí para enviar un mensaje de WhatsApp.</a>`);
+    // Generar el enlace de WhatsApp
+    // Suponemos que tienes una variable de entorno ADMIN_WHATSAPP_NUMBER con el número al que se enviará el mensaje
+    // El número debe estar en formato internacional, por ejemplo: +521234567890.
+    // Para el enlace, eliminamos el signo '+'.
+    const adminNumber = process.env.ADMIN_WHATSAPP_NUMBER.replace(/^\+/, "");
+    const whatsappLink = "https://wa.me/" + adminNumber + "?text=" + encodeURIComponent(messageContent);
+
+    // Devolver la respuesta con el enlace de WhatsApp
+    return res.status(200).json({
+      message: "Correo enviado y enlace de WhatsApp generado correctamente.",
+      whatsappLink: whatsappLink
+    });
   } catch (error) {
-    console.error("Error al enviar el correo:", error);
-    return res.status(500).json({ error: "Error al enviar el correo." });
+    console.error("Error en el backend:", error);
+    return res.status(500).json({ error: "Error en el servidor" });
   }
 };
