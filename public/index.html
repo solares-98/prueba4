@@ -98,35 +98,43 @@
         }, 1000);
     </script>
 <script>
-  document.addEventListener("DOMContentLoaded", function() {
-    document.querySelector("#rsvp-form").addEventListener("submit", async function(event) {
-      event.preventDefault();
+document.addEventListener("DOMContentLoaded", function() {
+  document.querySelector("#rsvp-form").addEventListener("submit", async function(event) {
+    event.preventDefault();
+    
+    const formData = {
+      name: document.querySelector("#name").value,
+      phone: document.querySelector("#phone").value,
+      email: document.querySelector("#email").value,
+      children: document.querySelector("#children").value
+    };
 
-      const formData = {
-        name: document.querySelector("#name").value,
-        phone: document.querySelector("#phone").value,
-        email: document.querySelector("#email").value,
-        children: document.querySelector("#children").value
-      };
-
-      try {
-        const response = await fetch("/api/index", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData)
-        });
-        const data = await response.json();
-        console.log("Respuesta del servidor:", data);
-        document.querySelector("#mensaje-confirmacion").innerHTML = "¡Gracias por confirmar tu asistencia!";
-        document.querySelector("#rsvp-form").reset();
-      } catch (error) {
-        console.error("Error al enviar el formulario:", error);
-        document.querySelector("#mensaje-confirmacion").innerHTML = "Error al conectar con el servidor.";
+    try {
+      const response = await fetch("/api/index", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData)
+      });
+      const data = await response.json();
+      console.log("Respuesta del servidor:", data);
+      
+      // Mostrar mensaje de confirmación
+      document.querySelector("#mensaje-confirmacion").innerHTML = "¡Gracias por confirmar tu asistencia!";
+      
+      // Opcional: redirigir automáticamente a WhatsApp
+      if (data.whatsappLink) {
+        window.location.href = data.whatsappLink;
       }
-    });
+      
+      // También puedes limpiar el formulario:
+      document.querySelector("#rsvp-form").reset();
+    } catch (error) {
+      console.error("Error al enviar el formulario:", error);
+      document.querySelector("#mensaje-confirmacion").innerHTML = "Error al conectar con el servidor.";
+    }
   });
+});
 </script>
-
-
+    <p id="mensaje-confirmacion"></p>
 </body>
 </html>
